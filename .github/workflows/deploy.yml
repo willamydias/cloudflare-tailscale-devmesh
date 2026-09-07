@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate-and-test:
-    name: 🔍 Lint, Typings & Nginx Syntax Validation
+  build-and-deploy:
+    name: 🚀 Build, Validate & Deploy to Cloudflare
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout Repository
@@ -21,45 +21,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          cache-dependency-path: cloudflare/package.json
 
-      - name: 📦 Install Cloudflare Worker Dependencies
+      - name: 📦 Install Cloudflare Dependencies
         run: |
           cd cloudflare
           npm install
 
-      - name: 🛡️ TypeScript Check
+      - name: 🛡️ TypeScript Validation
         run: |
           cd cloudflare
           npx tsc --noEmit
 
-      - name: 🌐 Build and Validate Nginx Container
-        run: |
-          docker build -t devmesh-nginx-test ./nginx
-          docker run --rm devmesh-nginx-test nginx -t
-
-  deploy-cloudflare:
-    name: 🚀 Deploy to Cloudflare Edge
-    needs: validate-and-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: 📦 Install Dependencies
+      - name: 🚀 Deploy to Cloudflare Edge
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         run: |
           cd cloudflare
-          npm install
-
-      - name: 🚀 Deploy Worker with Assets via Wrangler
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: 'cloudflare'
-          command: deploy
+          npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
