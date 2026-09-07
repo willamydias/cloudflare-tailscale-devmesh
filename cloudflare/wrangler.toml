@@ -1,4 +1,4 @@
-name = "devmesh-proxy-worker"
+name = "cloudflare-tailscale-devmesh"
 main = "src/index.ts"
 compatibility_date = "2024-09-01"
 compatibility_flags = ["nodejs_compat"]
