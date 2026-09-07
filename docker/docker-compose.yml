@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # 1. Nó Tailscale acoplado ao Gateway
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: devmesh-tailscale-node
+    hostname: gateway-homelab
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:serverless-proxy --accept-routes
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
+
+  # 2. Nginx Reverse Proxy (Compartilha a rede da Tailnet)
+  nginx-gateway:
+    build:
+      context: ../nginx
+      dockerfile: Dockerfile
+    container_name: devmesh-nginx-proxy
+    network_mode: "service:tailscale"
+    depends_on:
+      - tailscale
+    restart: unless-stopped
+
+  # 3. Container de Demonstração / Teste Local de API
+  mock-api-dev:
+    image: hashicorp/http-echo:latest
+    container_name: dev-mock-container
+    command: ["-text={\"status\":\"ok\",\"service\":\"backend-api-core\",\"node\":\"dev-workstation-01\"}"]
+    ports:
+      - "8000:5678"
+    restart: unless-stopped
+
+volumes:
+  tailscale_state:
+    driver: local

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudflare × Tailscale Dev Mesh | Gateway de Desenvolvimento</title>
+  <meta name="description" content="Portal de controle e roteamento serverless Cloudflare integrado à rede mesh Tailscale e containers de desenvolvimento.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Glow decorativo de fundo -->
+  <div class="bg-glow bg-glow-primary"></div>
+  <div class="bg-glow bg-glow-secondary"></div>
+
+  <header class="header">
+    <div class="container header-content">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="logo-title">DevMesh Edge</h1>
+          <span class="logo-badge">Cloudflare Serverless + Tailscale</span>
+        </div>
+      </div>
+      
+      <nav class="nav-links">
+        <a href="#dashboard" class="nav-link active">Dashboard</a>
+        <a href="#nodes" class="nav-link">Nós Ativos</a>
+        <a href="#routes" class="nav-link">Rotas & Proxy</a>
+        <a href="#docs" class="nav-link">Documentação</a>
+        <a href="https://github.com" target="_blank" rel="noopener" class="btn btn-sm btn-outline">GitHub Repo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-badge">
+          <span class="status-dot pulsing"></span>
+          <span>Rede Mesh Operacional via MagicDNS</span>
+        </div>
+        <h2 class="hero-title">Acesso Seguro e Serverless aos seus Containers Locais</h2>
+        <p class="hero-subtitle">
+          Roteamento de borda ultra-rápido pela Cloudflare, tunelado com segurança militar WireGuard pela Tailscale e balanceado pelo Nginx até os seus computadores de desenvolvimento.
+        </p>
+
+        <!-- Status Cards Bar -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Borda Cloudflare</span>
+            <span class="stat-value text-success">Serverless Online</span>
+            <span class="stat-sub">Latência Média: ~12ms</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Tailnet Mesh</span>
+            <span class="stat-value text-accent">WireGuard Ativo</span>
+            <span class="stat-sub">MagicDNS: Habilitado</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Nginx Gateway</span>
+            <span class="stat-value text-info">Reverse Proxy</span>
+            <span class="stat-sub">HTTP/2 + WebSocket HMR</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Containers Conectados</span>
+            <span class="stat-value" id="active-containers-count">4 Containers</span>
+            <span class="stat-sub">3 Estações de Dev</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nós de Desenvolvimento e Containers -->
+    <section id="nodes" class="section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Nós da Rede Mesh & Ambientes</h3>
+            <p class="section-desc">Instâncias conectadas na Tailnet recebendo tráfego proxy da Cloudflare.</p>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="refreshNodeStatus()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Atualizar Status
+          </button>
+        </div>
+
+        <div class="nodes-grid">
+          <!-- Dev PC 1 -->
+          <div class="node-card">
+            <div class="node-header">
+              <div class="node-info">
+                <span class="node-type">Estação Principal</span>
+                <h4 class="node-name">dev-workstation-01.tailnet</h4>
+              </div>
+              <span class="node-status online">Online</span>
+            </div>
+            <div class="node-ip">IP Tailscale: <code>100.64.0.10</code></div>
+            <div class="container-list">
+              <div class="container-item">
+                <div class="container-name-col">
+                  <span class="container-badge badge-api">API</span>
+                  <strong>backend-api-core</strong>
+                </div>
+                <div class="container-route">
+                  <code>:8000 &rarr; /api/v1</code>
+                  <a href="/api/v1/health" class="link-external" target="_blank">Testar</a>
+                </div>
+              </div>
+              <div class="container-item">
+                <div class="container-name-col">
+                  <span class="container-badge badge-auth">AUTH</span>
+                  <strong>auth-service</strong>
+                </div>
+                <div class="container-route">
+                  <code>:8080 &rarr; /auth</code>
+                  <a href="/auth/healthz" class="link-external" target="_blank">Testar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dev PC 2 -->
+          <div class="node-card">
+            <div class="node-header">
+              <div class="node-info">
+                <span class="node-type">Laptop Mobile/Frontend</span>
+                <h4 class="node-name">dev-laptop-02.tailnet</h4>
+              </div>
+              <span class="node-status online">Online</span>
+            </div>
+            <div class="node-ip">IP Tailscale: <code>100.64.0.22</code></div>
+            <div class="container-list">
+              <div class="container-item">
+                <div class="container-name-col">
+                  <span class="container-badge badge-fe">UI</span>
+                  <strong>nextjs-client-portal</strong>
+                </div>
+                <div class="container-route">
+                  <code>:3000 &rarr; /app</code>
+                  <a href="/app" class="link-external" target="_blank">Abrir</a>
+                </div>
+              </div>
+              <div class="container-item">
+                <div class="container-name-col">
+                  <span class="container-badge badge-ws">WS</span>
+                  <strong>vite-dashboard-hmr</strong>
+                </div>
+                <div class="container-route">
+                  <code>:5173 &rarr; /vite</code>
+                  <a href="/vite" class="link-external" target="_blank">Abrir</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Servidor Staging Local -->
+          <div class="node-card">
+            <div class="node-header">
+              <div class="node-info">
+                <span class="node-type">Home Server / Staging</span>
+                <h4 class="node-name">homelab-gateway.tailnet</h4>
+              </div>
+              <span class="node-status online">Online</span>
+            </div>
+            <div class="node-ip">IP Tailscale: <code>100.64.0.50</code></div>
+            <div class="container-list">
+              <div class="container-item">
+                <div class="container-name-col">
+                  <span class="container-badge badge-db">ADMIN</span>
+                  <strong>pgadmin-database-ui</strong>
+                </div>
+                <div class="container-route">
+                  <code>:5050 &rarr; /db-admin</code>
+                  <a href="/db-admin" class="link-external" target="_blank">Acessar</a>
+                </div>
+              </div>
+              <div class="container-item">
+                <div class="container-name-col">
+                  <span class="container-badge badge-doc">DOCS</span>
+                  <strong>swagger-api-docs</strong>
+                </div>
+                <div class="container-route">
+                  <code>:8081 &rarr; /docs/api</code>
+                  <a href="/docs/api" class="link-external" target="_blank">Acessar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabela de Rotas e Roteamento Nginx -->
+    <section id="routes" class="section section-alt">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Mapa de Roteamento Dinâmico (Nginx + Cloudflare)</h3>
+            <p class="section-desc">Regras de proxying e terminação aplicadas na borda e no gateway.</p>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Caminho / Subdomínio</th>
+                <th>Destino (Tailnet Node)</th>
+                <th>Porta Local</th>
+                <th>Protocolo</th>
+                <th>WebSocket / HMR</th>
+                <th>Segurança</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/</code>, <code>/index.html</code></td>
+                <td><span class="tag tag-cf">Cloudflare Pages</span></td>
+                <td>-</td>
+                <td>HTTPS / Static</td>
+                <td>Não</td>
+                <td>Público / CDN Cache</td>
+              </tr>
+              <tr>
+                <td><code>/api/v1/*</code></td>
+                <td><code>dev-workstation-01.tailnet</code></td>
+                <td>8000</td>
+                <td>HTTP/2 Proxy</td>
+                <td>Não</td>
+                <td>Auth Token / Rate-Limit</td>
+              </tr>
+              <tr>
+                <td><code>/auth/*</code></td>
+                <td><code>dev-workstation-01.tailnet</code></td>
+                <td>8080</td>
+                <td>HTTP Proxy</td>
+                <td>Não</td>
+                <td>Zero Trust / Strict Headers</td>
+              </tr>
+              <tr>
+                <td><code>/app/*</code></td>
+                <td><code>dev-laptop-02.tailnet</code></td>
+                <td>3000</td>
+                <td>HTTP Proxy</td>
+                <td>Sim (HMR)</td>
+                <td>Cookie Session / JWT</td>
+              </tr>
+              <tr>
+                <td><code>/vite/*</code></td>
+                <td><code>dev-laptop-02.tailnet</code></td>
+                <td>5173</td>
+                <td>HTTP + WSS</td>
+                <td>Sim (Full WSS)</td>
+                <td>Dev Only</td>
+              </tr>
+              <tr>
+                <td><code>/healthz</code></td>
+                <td><span class="tag tag-nginx">Nginx Gateway</span></td>
+                <td>80</td>
+                <td>JSON Status</td>
+                <td>Não</td>
+                <td>Público</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Guia Rápido de Uso -->
+    <section id="docs" class="section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Guia de Integração para Desenvolvedores</h3>
+            <p class="section-desc">Como conectar seu computador de desenvolvimento à rede mesh em segundos.</p>
+          </div>
+        </div>
+
+        <div class="guide-steps">
+          <div class="guide-step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <h4>Instalar e Autenticar no Tailscale</h4>
+              <p>Execute no terminal da sua máquina de desenvolvimento com a Auth Key fornecida pelo projeto:</p>
+              <pre><code>tailscale up --authkey=tskey-auth-xxxxx --accept-routes</code></pre>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <h4>Subir o Container de Desenvolvimento</h4>
+              <p>Inicie seu serviço docker escutando na porta configurada no Nginx:</p>
+              <pre><code>docker run -d --name meu-backend -p 8000:8000 minha-api:dev</code></pre>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <h4>Acessar Imediatamente via Edge Cloudflare</h4>
+              <p>O Cloudflare Worker e o Nginx identificam o host MagicDNS e encaminham o tráfego com SSL automático.</p>
+              <pre><code>curl -I https://seu-dominio.workers.dev/api/v1/health</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© 2026 DevMesh Edge System. Implantado no Cloudflare via GitHub Actions com Tailscale Network.</p>
+      <div class="footer-links">
+        <a href="#top">Voltar ao topo</a>
+        <a href="/healthz">Health Check</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+name = "devmesh-proxy-worker"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Servidor estático WWW integrado via Cloudflare Assets
+[assets]
+directory = "../www"
+binding = "ASSETS"
+
+# Variáveis de Ambiente do Worker Proxy
+[vars]
+ENVIRONMENT = "production"
+# Endereço upstream do Gateway Nginx na rede Tailscale ou Cloudflare Tunnel
+TAILSCALE_GATEWAY_ORIGIN = "https://gateway-homelab.tailnet.ts.net"
+ENABLE_DEV_SECURITY_HEADERS = "true"
+ALLOWED_DEV_ORIGINS = "*"
+
+# Observabilidade e Logs
+[observability]
+enabled = true

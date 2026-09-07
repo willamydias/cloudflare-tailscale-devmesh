@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Build e Bundlers
+dist/
+.wrangler/
+.turbo/
+
+# Logs e Ambientes
+*.log
+.env
+.env.local
+.env.*.local
+
+# Docker e SO
+.DS_Store
+Thumbs.db
+tailscale_state/
